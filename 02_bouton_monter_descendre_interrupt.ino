@@ -6,8 +6,8 @@ void setup() {
     Serial.begin(9600); // Ouverture du port série et debit de communication fixé à 9600 bauds
     Serial.println("--- Setup ---");
 
-    pinMode(btn_up, INPUT);
-    pinMode(btn_down, INPUT);
+    pinMode(btn_up, INPUT_PULLUP);
+    pinMode(btn_down, INPUT_PULLUP);
 
     // https://eskimon.fr/tuto-arduino-204-un-simple-bouton#les-interruptions-mat%C3%A9rielles
     attachInterrupt(digitalPinToInterrupt(btn_up), openDoor, FALLING);
