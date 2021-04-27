@@ -1,47 +1,70 @@
-int commande_haut=2; // Bouton haut
-int commande_bas=3; // Bouton bas
-
-int etat_bp_h;
-int etat_bp_b;
+// attachInterrupt ne fonctione qu'avec les pin 2 et 3 sur les carte Uno
+const int btn_up = 2; // Bouton haut
+const int btn_down = 3; // Bouton bas
+const int auto_mode = 4; // Interrupteur mode auto
+int auto_mode_state = HIGH;
 
 void setup() {
     Serial.begin(9600); // Ouverture du port série et debit de communication fixé à 9600 bauds
-
     Serial.println("--- Setup ---");
 
-    pinMode(commande_haut, INPUT_PULLUP); // Inverse de la lecture sur entrée BP haut
-    pinMode(commande_bas, INPUT_PULLUP); // Inverse de la lecture sur entrée BP bas
+    pinMode(btn_up, INPUT_PULLUP);
+    pinMode(btn_down, INPUT_PULLUP);
+    pinMode(auto_mode, INPUT);
+
+    // On  lit l'état de l'interrupteur
+    ManualModeActive();
+
+    // https://eskimon.fr/tuto-arduino-204-un-simple-bouton#les-interruptions-mat%C3%A9rielles
+    attachInterrupt(digitalPinToInterrupt(btn_up), openDoor, FALLING);
+    attachInterrupt(digitalPinToInterrupt(btn_down), closeDoor, FALLING);
 }
 
 void loop() {
-
-    // Lecture de l'état des boutons
-    etat_bp_h=!digitalRead(commande_haut); // Inverse de la lecture sur entrée BP haut
-    etat_bp_b=!digitalRead(commande_bas); // Inverse de la lecture sur entrée BP bas
-
-    if(etat_bp_h) // Appui sur BP haut mais pas sur le bas
-    {
-        Fermer_porte(); // Lancer la fonction fermeture de la porte du poulailler
-    }
-
-    if(etat_bp_b) // Appui sur BP bas mais pas sur le haut
-    {
-        Ouvrir_porte(); // Lancer la fonction ouverture de la porte du poulailler
-    }
-
     delay(1000);
+    Serial.println("Loop ---"); // Affichage sur le moniteur série
+
+    if(ManualModeActive() == true) {
+      Serial.println("Loop: mode Manual");
+    } else {
+      Serial.println("Loop: mode Auto");
+    }
 }
 
 // Séquence d'alimentation du moteur pour fermer la porte
-void Fermer_porte(){
-    Serial.println("Fermeture porte"); /// Affichage sur le moniteur série du texte
+void closeDoor(){
 
+  if(ManualModeActive() == true) {
+    Serial.println("Fermeture porte"); /// Affichage sur le moniteur série du texte
+    delay(2000);
     Serial.println("Porte Fermée"); // Affichage sur le moniteur série
+  }
+    // Serial.println("Mode auto activé, les boutons sont désactivé.");
+
 }
 
 // Séquence d'alimentation du moteur pour ouvrir la porte
-void Ouvrir_porte(){
-    Serial.println("Ouvrir porte"); /// Affichage sur le moniteur série du texte
+void openDoor(){
 
+  if(ManualModeActive() == true) {
+    Serial.println("Ouvrir porte"); /// Affichage sur le moniteur série du texte
+    delay(2000);
     Serial.println("Porte Ouverte"); // Affichage sur le moniteur série
+  }
+   // Serial.println("Mode auto activé, les boutons sont désactivé.");
+}
+
+bool ManualModeActive(){
+
+  auto_mode_state = digitalRead(auto_mode);
+  Serial.print("Mode: auto_mode_state :");
+  Serial.println(auto_mode_state);
+
+  if (auto_mode_state == LOW) {
+    Serial.println("Mode: Manual"); // Affichage sur le moniteur série
+    return true;
+  } else {
+    Serial.println("Mode: Auto");
+    return false;
+  }
 }
