@@ -11,6 +11,10 @@ RtcDS1302<ThreeWire> Rtc(myWire);
 // attachInterrupt ne fonctione qu'avec les pin 2 et 3 sur les carte Uno
 const int btn_up = 2;   // Bouton haut
 const int btn_down = 3; // Bouton bas
+const int limit_switch_up = 9;    // Capteur fin de course haut brancher sur broche NC
+const int limit_switch_down = 12; // Capteur fin de course bas brancher sur broche NC
+boolean lsup = false;             // Déclaration variable Fin de Course Haut
+boolean lsdown = false;           // Déclaration variable Fin de Course Bas
 
 const int auto_mode = 8; // Interrupteur mode auto
 int auto_mode_state = HIGH;
@@ -41,11 +45,13 @@ void setup()
 
     pinMode(btn_up, INPUT_PULLUP);
     pinMode(btn_down, INPUT_PULLUP);
+    pinMode(limit_switch_up, INPUT_PULLUP);
+    pinMode(limit_switch_down, INPUT_PULLUP);
     pinMode(auto_mode, INPUT);
 
     // https://eskimon.fr/tuto-arduino-204-un-simple-bouton#les-interruptions-mat%C3%A9rielles
-    attachInterrupt(digitalPinToInterrupt(btn_up), openDoor, FALLING);
-    attachInterrupt(digitalPinToInterrupt(btn_down), closeDoor, FALLING);
+    attachInterrupt(digitalPinToInterrupt(btn_up), buttonUpAction, FALLING);
+    attachInterrupt(digitalPinToInterrupt(btn_down), buttonDownAction, FALLING);
 
     // Init motor
     pinMode(motor_in1, OUTPUT);
@@ -67,37 +73,20 @@ void loop()
 
     delay(2000);
 
-    // TODO - Test motor run - TO REMOVE
+    // TODO procedure d'initialisation si aucun des capteurs de fin de course n'est actionné.
 
-    digitalWrite(motor_in1, HIGH);
-    digitalWrite(motor_in2, LOW);
-
-    delay(10000);
-
-    digitalWrite(motor_in1, LOW);
-    digitalWrite(motor_in2, HIGH);
-
-    delay(10000);
-
-    digitalWrite(motor_in1, LOW);
-    digitalWrite(motor_in2, LOW);
+    // Lecture position des fin de course
+    lsup = digitalRead(limit_switch_up);
+    lsdown = digitalRead(limit_switch_down);
 }
 
-// Séquence d'alimentation du moteur pour fermer la porte
-void closeDoor()
-{
+// Action des boutons Up et Down
 
+void buttonUpAction()
+{
     if (ManualModeActive() == true)
     {
-        Serial.println("Fermeture porte"); /// Affichage sur le moniteur série du texte
-
-        digitalWrite(motor_in1, HIGH);
-        digitalWrite(motor_in2, LOW);
-
-        delay(10000); // le moteur tourne pendant 10 sec
-
-        digitalWrite(motor_in1, LOW);
-        Serial.println("Porte Fermée"); // Affichage sur le moniteur série
+        openDoor();
     }
     else
     {
@@ -105,22 +94,11 @@ void closeDoor()
     }
 }
 
-// Séquence d'alimentation du moteur pour ouvrir la porte
-void openDoor()
+void buttonDownAction()
 {
-
     if (ManualModeActive() == true)
     {
-        Serial.println("Ouvrir porte"); /// Affichage sur le moniteur série du texte
-
-        digitalWrite(motor_in1, LOW);
-        digitalWrite(motor_in2, HIGH);
-
-        delay(10000); // le moteur tourne pendant 10 sec
-
-        digitalWrite(motor_in2, LOW);
-
-        Serial.println("Porte Ouverte"); // Affichage sur le moniteur série
+        closeDoor();
     }
     else
     {
@@ -148,6 +126,40 @@ bool ManualModeActive()
         return false;
     }
     */
+}
+
+// Séquence d'alimentation du moteur pour fermer la porte
+void closeDoor()
+{
+    Serial.println("Fermeture porte"); /// Affichage sur le moniteur série du texte
+
+    while (lsdown == false)
+    {
+        digitalWrite(motor_in1, HIGH);
+        digitalWrite(motor_in2, LOW);
+        lsdown = digitalRead(limit_switch_down);
+    }
+
+    digitalWrite(motor_in1, LOW);
+
+    Serial.println("Porte Fermée"); // Affichage sur le moniteur série
+}
+
+// Séquence d'alimentation du moteur pour ouvrir la porte
+void openDoor()
+{
+    Serial.println("Ouvrir porte"); /// Affichage sur le moniteur série du texte
+
+    while (lsup == false)
+    {
+        digitalWrite(motor_in1, LOW);
+        digitalWrite(motor_in2, HIGH);
+        lsup = digitalRead(limit_switch_up);
+    }
+
+    digitalWrite(motor_in2, LOW);
+
+    Serial.println("Porte Ouverte"); // Affichage sur le moniteur série
 }
 
 // RTC Module
