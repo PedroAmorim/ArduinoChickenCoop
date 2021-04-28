@@ -36,7 +36,17 @@ void setup()
 
     // --- Init rtc module ---
     Rtc.Begin();
+
+    RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
     RtcDateTime now = Rtc.GetDateTime();
+
+    // Update RTC time if needed
+    if (now < compiled || !Rtc.IsDateTimeValid())
+    {
+        Serial.println("RTC: Updating DateTime");
+        Rtc.SetDateTime(compiled);
+    }
+
     Serial.print("RTC time: ");
     printDateTime(now);
     Serial.println();
@@ -53,11 +63,22 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(btn_up), buttonUpAction, FALLING);
     attachInterrupt(digitalPinToInterrupt(btn_down), buttonDownAction, FALLING);
 
-    // Init motor
+    // --- Init motor ---
     pinMode(motor_in1, OUTPUT);
     pinMode(motor_in2, OUTPUT);
     digitalWrite(motor_in1, LOW);
     digitalWrite(motor_in2, LOW);
+
+    // --- Init door
+    lsup = digitalRead(limit_switch_up);
+    lsdown = digitalRead(limit_switch_down);
+
+    if (lsup == false && lsdown == false)
+    {
+        Serial.println("Initialisation de la porte.");
+        openDoor();
+        closeDoor();
+    }
 }
 
 void loop()
@@ -72,12 +93,6 @@ void loop()
     Serial.println(now.Minute());
 
     delay(2000);
-
-    // TODO procedure d'initialisation si aucun des capteurs de fin de course n'est actionné.
-
-    // Lecture position des fin de course
-    lsup = digitalRead(limit_switch_up);
-    lsdown = digitalRead(limit_switch_down);
 }
 
 // Action des boutons Up et Down
@@ -133,6 +148,8 @@ void closeDoor()
 {
     Serial.println("Fermeture porte"); /// Affichage sur le moniteur série du texte
 
+    lsdown = digitalRead(limit_switch_down);
+
     while (lsdown == false)
     {
         digitalWrite(motor_in1, HIGH);
@@ -149,6 +166,8 @@ void closeDoor()
 void openDoor()
 {
     Serial.println("Ouvrir porte"); /// Affichage sur le moniteur série du texte
+
+    lsup = digitalRead(limit_switch_up);
 
     while (lsup == false)
     {
