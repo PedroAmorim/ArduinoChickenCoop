@@ -28,11 +28,13 @@ volatile unsigned long last_micros;
 const int motor_in1 = 10;
 const int motor_in2 = 11;
 
-// --- LIght sensor
+// --- Light sensor
 
 const int light_sensor = 1; // Pin analog for light sensor
 int light = 0;              // Current light value
-int light_threshold = 200;  // Brightness threshold between day and night
+int light_threshold = 100;  // Brightness threshold between day and night
+const int day_hour = 6;     // Before this hour, door stay close
+const int night_hour = 22;  // After this hour, we close the door
 
 void setup()
 {
@@ -103,9 +105,15 @@ void loop()
     Serial.print("Minutes: ");
     Serial.println(now.Minute());
 
+    // Force the door to close depending on the time of day
+    if (now.Hour() < day_hour || now.Hour() > night_hour)
+    {
+        closeDoor();
+    }
+
     lightSensorCheck();
 
-    delay(2000);
+    delay(10000);
 }
 
 // Action des boutons Up et Down
