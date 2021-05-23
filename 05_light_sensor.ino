@@ -6,6 +6,10 @@
 ThreeWire myWire(7, 8, 6); // IO, SCLK, CE
 RtcDS1302<ThreeWire> Rtc(myWire);
 
+// --- General setup
+
+const unsigned long loop_deplay = 300000; // in milliseconds => 2 minutes
+
 // --- Init manual mode objects ---
 
 // attachInterrupt ne fonctione qu'avec les pin 2 et 3 sur les carte Uno
@@ -20,7 +24,7 @@ const int limit_switch_down = 12; // Capteur fin de course bas brancher sur broc
 boolean lsup = false;             // Déclaration variable Fin de Course Haut
 boolean lsdown = false;           // Déclaration variable Fin de Course Bas
 
-long debouncing_time = 15; // Debouncing Time in Milliseconds
+const unsigned long debouncing_time = 1000000; // Debouncing time in microseconds. 1 seconds = 1 000 000 microseconds
 volatile unsigned long last_micros;
 
 // --- Motor objects ---
@@ -113,14 +117,14 @@ void loop()
 
     lightSensorCheck();
 
-    delay(10000);
+    delay(loop_deplay);
 }
 
 // Action des boutons Up et Down
 
 void buttonUpAction()
 {
-    if ((long)(micros() - last_micros) >= debouncing_time * 1000)
+    if ((long)(micros() - last_micros) >= debouncing_time)
     {
         last_micros = micros();
 
@@ -137,7 +141,7 @@ void buttonUpAction()
 
 void buttonDownAction()
 {
-    if ((long)(micros() - last_micros) >= debouncing_time * 1000)
+    if ((long)(micros() - last_micros) >= debouncing_time)
     {
         last_micros = micros();
 
