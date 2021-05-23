@@ -8,7 +8,7 @@ RtcDS1302<ThreeWire> Rtc(myWire);
 
 // --- General setup
 
-const unsigned long loop_deplay = 300000; // in milliseconds => 2 minutes
+const unsigned long loop_deplay = 3000000; // in milliseconds => 5 minutes
 
 // --- Init manual mode objects ---
 
@@ -243,12 +243,17 @@ void lightSensorCheck()
     Serial.print("Capteur de luminosité : ");
     Serial.println(light);
 
-    if (light < light_threshold)
+    if (ManualModeActive() == false)
     {
-        Serial.println("Il fait nuit.");
-    }
-    else
-    {
-        Serial.println("Il fait jour.");
+        if (light < light_threshold)
+        {
+            Serial.println("Il fait nuit.");
+            closeDoor();
+        }
+        else
+        {
+            Serial.println("Il fait jour.");
+            openDoor();
+        }
     }
 }
