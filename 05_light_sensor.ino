@@ -28,6 +28,12 @@ volatile unsigned long last_micros;
 const int motor_in1 = 10;
 const int motor_in2 = 11;
 
+// --- LIght sensor
+
+const int light_sensor = 1; // Pin analog for light sensor
+int light = 0;              // Current light value
+int light_threshold = 200;  // Brightness threshold between day and night
+
 void setup()
 {
 
@@ -96,6 +102,8 @@ void loop()
     Serial.println(now.Hour());
     Serial.print("Minutes: ");
     Serial.println(now.Minute());
+
+    lightSensorCheck();
 
     delay(2000);
 }
@@ -213,4 +221,22 @@ void printDateTime(const RtcDateTime &dt)
                dt.Minute(),
                dt.Second());
     Serial.print(datestring);
+}
+
+// Light sensor
+
+void lightSensorCheck()
+{
+    light = analogRead(light_sensor);
+    Serial.print("Capteur de luminosité : ");
+    Serial.println(light);
+
+    if (light < light_threshold)
+    {
+        Serial.println("Il fait nuit.");
+    }
+    else
+    {
+        Serial.println("Il fait jour.");
+    }
 }
