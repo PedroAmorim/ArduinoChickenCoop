@@ -16,8 +16,8 @@ const int limit_switch_down = 12; // Capteur fin de course bas brancher sur broc
 boolean lsup = false;             // Déclaration variable Fin de Course Haut
 boolean lsdown = false;           // Déclaration variable Fin de Course Bas
 
-const int auto_mode = 8; // Interrupteur mode auto
-int auto_mode_state = HIGH;
+const int auto_mode = 4; // Interrupteur mode auto
+int auto_mode_state = false;
 
 // --- Motor objects ---
 
@@ -57,7 +57,8 @@ void setup()
     pinMode(btn_down, INPUT_PULLUP);
     pinMode(limit_switch_up, INPUT_PULLUP);
     pinMode(limit_switch_down, INPUT_PULLUP);
-    pinMode(auto_mode, INPUT);
+    pinMode(auto_mode, INPUT_PULLUP);
+    auto_mode_state = digitalRead(auto_mode);
 
     // https://eskimon.fr/tuto-arduino-204-un-simple-bouton#les-interruptions-mat%C3%A9rielles
     attachInterrupt(digitalPinToInterrupt(btn_up), buttonUpAction, FALLING);
@@ -73,11 +74,10 @@ void setup()
     lsup = digitalRead(limit_switch_up);
     lsdown = digitalRead(limit_switch_down);
 
-    if (lsup == false && lsdown == false)
-    {
-        Serial.println("Initialisation de la porte.");
-        openDoor();
-        closeDoor();
+    if (lsup == false && lsdown == false) {
+      Serial.println("Initialisation de la porte.");
+      openDoor();
+      closeDoor();
     }
 }
 
@@ -93,6 +93,7 @@ void loop()
     Serial.println(now.Minute());
 
     delay(2000);
+
 }
 
 // Action des boutons Up et Down
@@ -123,24 +124,20 @@ void buttonDownAction()
 
 bool ManualModeActive()
 {
-    /*
+
     auto_mode_state = digitalRead(auto_mode);
-    Serial.print("Mode: auto_mode_state :");
+    Serial.print("auto_mode_state :");
     Serial.println(auto_mode_state);
 
-    if (auto_mode_state == LOW)
+    if (auto_mode_state == false)
     {
-    */
-    Serial.println("Mode: Manual"); // Affichage sur le moniteur série
-    return true;
-    /*
+      Serial.println("Mode: Manual"); // Affichage sur le moniteur série
+      return true;
+    } else {
+      Serial.println("Mode: Auto");
+      return false;
     }
-    else
-    {
-        Serial.println("Mode: Auto");
-        return false;
-    }
-    */
+
 }
 
 // Séquence d'alimentation du moteur pour fermer la porte
@@ -158,6 +155,7 @@ void closeDoor()
     }
 
     digitalWrite(motor_in1, LOW);
+    digitalWrite(motor_in2, LOW);
 
     Serial.println("Porte Fermée"); // Affichage sur le moniteur série
 }
@@ -176,6 +174,7 @@ void openDoor()
         lsup = digitalRead(limit_switch_up);
     }
 
+    digitalWrite(motor_in1, LOW);
     digitalWrite(motor_in2, LOW);
 
     Serial.println("Porte Ouverte"); // Affichage sur le moniteur série
