@@ -104,25 +104,35 @@ void loop()
 
 void buttonUpAction()
 {
-    if (ManualModeActive() == true)
+    if ((long)(micros() - last_micros) >= debouncing_time * 1000)
     {
-        openDoor();
-    }
-    else
-    {
-        Serial.println("Mode auto activé, les boutons sont désactivé.");
+        last_micros = micros();
+
+        if (ManualModeActive() == true)
+        {
+            openDoor();
+        }
+        else
+        {
+            Serial.println("Mode auto activé, les boutons sont désactivé.");
+        }
     }
 }
 
 void buttonDownAction()
 {
-    if (ManualModeActive() == true)
+    if ((long)(micros() - last_micros) >= debouncing_time * 1000)
     {
-        closeDoor();
-    }
-    else
-    {
-        Serial.println("Mode auto activé, les boutons sont désactivé.");
+        last_micros = micros();
+
+        if (ManualModeActive() == true)
+        {
+            closeDoor();
+        }
+        else
+        {
+            Serial.println("Mode auto activé, les boutons sont désactivé.");
+        }
     }
 }
 
