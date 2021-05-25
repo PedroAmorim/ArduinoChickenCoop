@@ -36,9 +36,11 @@ const int motor_in2 = 11;
 
 const int light_sensor = 1; // Pin analog for light sensor
 int light = 0;              // Current light value
-int light_threshold = 100;  // Brightness threshold between day and night
+int light_threshold = 30;  // Brightness threshold between day and night
+
 const int day_hour = 6;     // Before this hour, door stay close
 const int night_hour = 22;  // After this hour, we close the door
+boolean is_night = false;
 
 void setup()
 {
@@ -109,12 +111,8 @@ void loop()
     Serial.print("Minutes: ");
     Serial.println(now.Minute());
 
-    // Force the door to close depending on the time of day
-    if (now.Hour() < day_hour || now.Hour() > night_hour)
-    {
-        closeDoor();
-    }
-
+    closeDoorAtNight();
+   
     lightSensorCheck();
 
     delay(loop_deplay);
@@ -243,7 +241,7 @@ void lightSensorCheck()
     Serial.print("Capteur de luminosité : ");
     Serial.println(light);
 
-    if (ManualModeActive() == false)
+    if (ManualModeActive() == false && is_night == false)
     {
         if (light < light_threshold)
         {
@@ -255,5 +253,28 @@ void lightSensorCheck()
             Serial.println("Il fait jour.");
             openDoor();
         }
+    }
+}
+
+// Force the door to close depending on the time of day
+void closeDoorAtNight(){
+
+    if (ManualModeActive() == false)
+    {
+      // RTC module : https://github.com/Makuna/Rtc/wiki/RtcDateTime-object
+      RtcDateTime now = Rtc.GetDateTime();
+      Serial.print("Heure: ");
+      Serial.println(now.Hour());
+      
+      // Force the door to close depending on the time of day
+      
+      if (now.Hour() <= day_hour || now.Hour() >= night_hour)
+      {
+        Serial.println("Close the door based on hour.");
+        is_night = true;
+        closeDoor();
+      } else {
+        is_night = false;
+      }
     }
 }
