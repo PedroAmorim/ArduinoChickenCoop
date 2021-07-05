@@ -8,7 +8,7 @@ RtcDS1302<ThreeWire> Rtc(myWire);
 
 // --- General setup
 
-const unsigned long loop_deplay = 3000000; // in milliseconds => 5 minutes
+const unsigned long loop_deplay = 300000; // in milliseconds => 5 minutes
 
 // --- Init manual mode objects ---
 
